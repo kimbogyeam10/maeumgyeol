@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#6757d8">
+<title>마음결 | 대화 맥락 분석기</title>
+<style>
+:root{color-scheme:light;--bg:#f7f7fc;--paper:#fff;--ink:#20233a;--muted:#737991;--line:#e7e8f2;--purple:#6757d8;--purple-light:#f0edff;--mint:#e8f7f0;--mint-ink:#26764f;--amber:#fff4df;--amber-ink:#85591d;--rose:#fff0f2;--rose-ink:#a34256;--shadow:0 16px 44px rgba(42,40,95,.07)}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 10% 0%,#efedff 0,transparent 34%),radial-gradient(ellipse at 100% 28%,#eaf8f2 0,transparent 26%),var(--bg);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Malgun Gothic",sans-serif;color:var(--ink);line-height:1.55}
+button,select,textarea,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.55;cursor:not-allowed}.wrap{width:min(1120px,100%);margin:auto;padding:26px 20px 58px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px}.brand{display:flex;align-items:center;gap:11px;font-size:19px;font-weight:850;letter-spacing:-.04em}.logo{display:grid;place-items:center;width:42px;height:42px;border-radius:15px;color:white;background:linear-gradient(145deg,#7e6cf0,#5d4dc9);box-shadow:0 7px 18px #6757d83b;font-size:22px}.local{display:inline-flex;align-items:center;gap:6px;color:#39815f;background:#e8f7ef;border-radius:99px;padding:7px 11px;font-size:11px;font-weight:800}.local:before{content:"";width:6px;height:6px;background:#48a778;border-radius:50%}
+.hero-card{background:linear-gradient(135deg,#ffffff,#f6f4ff);border:1px solid #e0dcff;border-radius:28px;padding:36px;box-shadow:0 20px 50px rgba(103,87,216,0.08);margin:24px 0 32px;display:grid;grid-template-columns:1.2fr 0.8fr;gap:24px;align-items:center}
+.eyebrow{color:var(--purple);font-size:12px;font-weight:850;letter-spacing:.16em;margin-bottom:8px}.hero-card h1{font-size:clamp(28px,4vw,42px);line-height:1.18;letter-spacing:-.05em;margin:0 0 14px;color:#181735}.hero-card p{margin:0;color:var(--muted);font-size:14.5px;line-height:1.8}
+.hero-preview{background:#fff;border:1px solid #e3e1f5;border-radius:20px;padding:18px;box-shadow:0 10px 28px rgba(0,0,0,0.04)}
+.hero-chat-bubble{background:#f0edff;border-radius:14px;padding:10px 14px;font-size:13px;color:#4c41a3;margin-bottom:8px;display:flex;align-items:center;gap:8px}.hero-chat-bubble.other{background:#f3f4f9;color:#33374e}
+.hero-tag-wrap{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.hero-tag{font-size:11px;padding:5px 9px;border-radius:8px;background:#eef7f2;color:#2b7a54;font-weight:700}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}.card{min-width:0;background:var(--paper);border:1px solid var(--line);border-radius:23px;padding:23px;box-shadow:var(--shadow)}.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:5px}.card h2{font-size:18px;letter-spacing:-.025em;margin:0}.subtitle{font-size:12px;color:var(--muted);line-height:1.7;margin:5px 0 19px}.step{font-size:11px;color:#6b60c9;background:var(--purple-light);padding:6px 9px;border-radius:99px;font-weight:850;white-space:nowrap}
+label.field-label{display:block;font-size:12px;font-weight:800;margin:17px 0 7px}select,textarea,input[type=text]{width:100%;border:1px solid #dedfed;border-radius:12px;background:#fdfdff;color:var(--ink);padding:12px 13px;outline:none;transition:border-color .15s,box-shadow .15s}select:focus,textarea:focus,input[type=text]:focus{border-color:var(--purple);box-shadow:0 0 0 3px #6757d81a}textarea{resize:vertical;min-height:94px;line-height:1.7}#chat{min-height:215px}#situation{min-height:48px;height:48px}.helper{font-size:11px;color:var(--muted);line-height:1.65;margin:7px 0 0}.counter{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:11px;margin-top:6px}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.checkrow{display:flex;gap:9px;align-items:flex-start;margin:13px 0 0;color:var(--muted);font-size:11px;line-height:1.65}.checkrow input{margin-top:3px;accent-color:var(--purple);flex-shrink:0}.checkrow.main{margin:17px 0 14px}.actions{display:flex;gap:9px;flex-wrap:wrap}.btn{border:0;border-radius:12px;padding:12px 15px;font-size:13px;font-weight:850;transition:transform .12s,filter .12s}.btn:active{transform:translateY(1px)}.btn.primary{flex:1;background:var(--purple);color:white;box-shadow:0 8px 18px #6757d82e}.btn.primary:hover{filter:brightness(1.06)}.btn.soft{background:var(--purple-light);color:#5d50c1}.btn.line{border:1px solid var(--line);background:white;color:#545970}.mini-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.mini-actions .btn{padding:8px 10px;font-size:11px}
+.quick-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.tag-btn{border:1px solid #e1e0f0;background:#f8f7ff;color:#57509e;padding:6px 11px;border-radius:20px;font-size:11px;font-weight:700;transition:all .15s}
+.tag-btn.active{background:var(--purple);color:white;border-color:var(--purple)}
+.security-notice{border:1px solid #d4f0df;background:#f2faf5;color:#216b43;padding:10px 12px;border-radius:12px;font-size:11px;line-height:1.6;margin-top:10px;display:flex;align-items:center;gap:8px}
+.drop{border:1.5px dashed #cfcbf3;background:#faf9ff;border-radius:15px;padding:14px;text-align:center;transition:background .15s,border-color .15s}.drop.over{background:#f0edff;border-color:var(--purple)}.drop p{margin:0 0 10px;font-size:12px;color:var(--muted);line-height:1.7}.drop .btn{padding:9px 12px;font-size:12px;margin:2px}.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;justify-content:center}.thumb{position:relative;width:56px;height:56px;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#fff}.thumb img{width:100%;height:100%;object-fit:cover;display:block}.thumb span{position:absolute;right:2px;bottom:2px;background:#26263a;color:#fff;border-radius:6px;font-size:10px;padding:0 5px;line-height:17px}progress{width:100%;height:8px;margin-top:9px;accent-color:var(--purple)}.ocr-status{font-size:11px;color:var(--purple);margin-top:6px;min-height:16px}
+details.teach{margin-top:14px;border:1px solid var(--line);border-radius:13px;padding:11px 13px;background:#fcfcff}details.teach summary{font-size:12px;font-weight:800;cursor:pointer}.teach-row{display:grid;grid-template-columns:1.3fr 1fr auto;gap:8px;margin-top:10px}.teach-row select,.teach-row input{padding:9px 10px;font-size:12px}.teach-row .btn{padding:9px 12px;font-size:12px}.teach-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.teach-list .chip button{border:0;background:none;color:inherit;font-weight:800;margin-left:4px;padding:0}
+.result-card{min-height:680px}.empty{min-height:620px;display:grid;place-items:center;text-align:center;padding:28px;color:var(--muted)}.empty-icon{width:66px;height:66px;display:grid;place-items:center;border-radius:23px;background:var(--purple-light);color:var(--purple);font-size:29px;margin:0 auto 15px}.empty strong{display:block;color:var(--ink);font-size:16px;margin-bottom:6px}.empty p{font-size:12px;line-height:1.8;margin:0}.result-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.result-top h2{margin:0}.pill{border-radius:99px;padding:6px 9px;background:#f0edff;color:#5d50c1;font-size:10px;font-weight:850;white-space:nowrap}.result-context{font-size:12px;color:var(--muted);line-height:1.7;margin:8px 0 0;overflow-wrap:anywhere}.section{border-top:1px solid var(--line);padding-top:17px;margin-top:17px}.section h3{font-size:13px;margin:0 0 10px;letter-spacing:-.015em}.section p,.section li{font-size:13px;line-height:1.8}.section p{margin:8px 0}.signal-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}.signal-head strong{font-size:28px;letter-spacing:-.04em}.signal-head span{font-size:11px;color:var(--muted)}.meter{height:10px;background:#eeeff6;border-radius:99px;overflow:hidden;margin:9px 0 10px}.meter span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#60c08b,#f3bd52,#e15c6d)}.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{border-radius:9px;padding:6px 8px;font-size:11px;background:#f0edff;color:#5b4fba}.chip.positive{background:var(--mint);color:var(--mint-ink)}.chip.caution{background:var(--amber);color:var(--amber-ink)}.callout{padding:12px 13px;border-radius:13px;font-size:12px;line-height:1.75;background:#f7f6ff;color:#4c467e;border:1px solid #e9e5ff}.empty-signals{font-size:12px;color:var(--muted)}
+.risk-box{border-radius:18px;padding:18px;background:#fff;border:1px solid #edd5d8;box-shadow:0 6px 18px rgba(225,92,109,0.06)}.risk-header{display:flex;align-items:center;justify-content:space-between}.risk-title{font-size:14px;font-weight:850;color:#20233a;display:flex;align-items:center;gap:6px}.risk-badge{padding:4px 10px;border-radius:99px;font-size:11px;font-weight:800;color:#fff}.risk-badge.lvl-1{background:#3cb371}.risk-badge.lvl-2{background:#e6a100}.risk-badge.lvl-3{background:#e66000}.risk-badge.lvl-4{background:#d93838}.risk-num{font-size:32px;font-weight:900;letter-spacing:-.04em;margin:8px 0 4px;color:#20233a}.risk-desc{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.dot{width:14px;height:14px;border-radius:50%;background:var(--c);display:inline-block}.dot.me{width:10px;height:10px;background:#fff;border:3px solid var(--c)}.legend{font-size:11px;color:var(--muted);margin-top:8px}
+.scen{display:grid;gap:8px}.scen-item{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fcfcff}.scen-item b{font-size:13px}.scen-item p{margin:3px 0 0;font-size:12px;color:#555a72;line-height:1.65}
+.ev{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;font-size:12px;line-height:1.7;overflow-wrap:anywhere}.ev .chips{margin-top:6px}
+.reply-item{margin-bottom:10px}.reply-label{font-size:11px;font-weight:800;color:#5d50c1;margin-bottom:4px}.reply{border:1px solid var(--line);border-radius:13px;padding:12px 13px;background:#fcfcff;font-size:13px;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere}.reply-actions{display:flex;justify-content:flex-end;margin-top:6px}.reply-actions .btn{padding:7px 10px;font-size:11px}
+.footer{margin-top:18px;color:var(--muted);font-size:11px;line-height:1.8}.footer a{color:#5e52bc;text-underline-offset:3px}.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#26263a;color:white;border-radius:12px;padding:11px 15px;font-size:12px;box-shadow:var(--shadow);z-index:10;max-width:90vw}.hidden{display:none!important}
+@media(max-width:800px){.grid{grid-template-columns:1fr}.hero-card{grid-template-columns:1fr;padding:24px}.result-card{min-height:420px}.empty{min-height:360px}}@media(max-width:480px){.wrap{padding:18px 12px 40px}.card{padding:17px;border-radius:18px}.hero-card h1{font-size:26px}.row{grid-template-columns:1fr;gap:0}.teach-row{grid-template-columns:1fr}.topbar{align-items:flex-start}.local{font-size:10px}.actions .btn{width:100%}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="topbar"><div class="brand"><div class="logo" aria-hidden="true">心</div><span>마음결</span></div><span class="local">🔒 100% 로컬 보안 분석 중</span></header>
+
+<section class="hero-card">
+  <div>
+    <div class="eyebrow">SAFE & SMART DIALOGUE ANALYZER</div>
+    <h1>대화 속 숨은 마음,<br>안전하게 맥락을 살펴요</h1>
+    <p>오가는 대화 속 감정 단서와 오해 요소를 정리해 드립니다. 개인정보는 자동으로 가려지며, 대화 데이터는 어디로도 전송되지 않아요.</p>
+  </div>
+  <div class="hero-preview">
+    <div class="hero-chat-bubble other">💬 상대: 그냥 뭐 알아서 해ㅋㅋ</div>
+    <div class="hero-chat-bubble">🙋 나: 혹시 내가 실수했거나 서운한 거 있어?</div>
+    <div class="hero-tag-wrap">
+      <span class="hero-tag">⚠️ 거리두기 표현 감지</span>
+      <span class="hero-tag">💡 진정성 있는 확인 질문 추천</span>
+    </div>
+  </div>
+</section>
+
+<div class="grid">
+<section class="card">
+<div class="card-head"><h2>대화 정보 입력</h2><span class="step">STEP 01</span></div>
+<p class="subtitle">이름, 전화번호 등 개인정보는 자동으로 브라우저 내에서 필터링됩니다.</p>
+<div class="row"><div><label class="field-label" for="target">분석 대상</label><select id="target"><option value="여자친구">여자친구</option><option value="여사친">여사친</option><option value="어머니">어머니</option><option value="친구" selected>친구</option><option value="기타 관계">기타 관계</option></select></div>
+<div><label class="field-label" for="focus">중점적으로 볼 내용</label><select id="focus"><option value="전체">전체적인 분위기</option><option value="서운함">서운함·불편함</option><option value="거절">거절·부담감</option><option value="친근함">친근함·호의</option><option value="갈등">갈등·화해</option></select></div></div>
+
+<label class="field-label">상황 태그 선택 (빠른 입력)</label>
+<div class="quick-tags" id="quickTags">
+  <button type="button" class="tag-btn" data-tag="약속 시간/지각 상황이야.">⏰ 약속·지각</button>
+  <button type="button" class="tag-btn" data-tag="갑자기 약속이 취소되거나 변경된 대화야.">❌ 약속 취소</button>
+  <button type="button" class="tag-btn" data-tag="답장이 늦거나 읽고 한참 뒤에 온 대화야.">📱 읽씹·답장 delayed</button>
+  <button type="button" class="tag-btn" data-tag="돈 정산이나 송금 관련 대화야.">💸 정산·돈 문제</button>
+  <button type="button" class="tag-btn" data-tag="데이트 신청이나 호감 표현이 섞인 대화야.">💌 데이트·호감</button>
+  <button type="button" class="tag-btn" data-tag="상대방 말투가 평소와 달라 오해가 생긴 대화야.">⚡ 말투·오해</button>
+</div>
+<textarea id="situation" placeholder="선택한 태그 내용이 입력되거나, 한 줄로 간단히 메모해 주세요."></textarea>
+
+<label class="field-label">캡처·파일 불러오기</label>
+<div class="drop" id="drop">
+<p>대화 캡처 이미지(최대 6장)나 대화 내보내기 파일(.txt)을<br>끌어다 놓거나 아래 버튼으로 선택하세요.</p>
+<button type="button" class="btn soft" id="pickImg">📷 캡처 이미지</button><button type="button" class="btn soft" id="pickTxt">📄 대화 파일(.txt)</button>
+<input type="file" id="imgInput" accept="image/*" multiple class="hidden"><input type="file" id="txtInput" accept=".txt,.text,.csv,text/plain" class="hidden">
+<div class="thumbs" id="thumbs"></div>
+<progress id="ocrBar" max="1" value="0" class="hidden"></progress><div class="ocr-status" id="ocrStatus"></div>
+</div>
+<label class="checkrow"><input type="checkbox" id="guessSide" checked><span>캡처의 말풍선 위치로 '나/상대'를 추정해요</span></label>
+
+<label class="field-label" for="chat">대화 내용 <span style="font-weight:600;color:var(--muted)">(수정 가능)</span></label><textarea id="chat" maxlength="12000" placeholder="나: 미안, 오늘 조금 늦을 것 같아.&#10;상대: 그래 알겠어.&#10;나: 혹시 화났어?"></textarea>
+<div class="counter"><span>카카오톡 내보내기 형식도 자동으로 인식해요.</span><span id="charCount">0 / 12,000</span></div>
+
+<div class="security-notice">
+  <span>🛡️ <b>자동 개인정보 보호:</b> 전화번호, 계좌번호, 이메일, 주민번호 등 민감 정보는 자동 `[마스킹]` 처리됩니다.</span>
+</div>
+
+<div id="meWrap" class="hidden"><label class="field-label" for="meSpeaker">어느 쪽이 '나'인가요?</label><select id="meSpeaker"></select></div>
+<div class="mini-actions"><button type="button" class="btn soft" id="sample">예시 불러오기</button><button type="button" class="btn line" id="clear">입력 지우기</button></div>
+
+<details class="teach"><summary>내 표현 사전 · 직접 가르치기</summary>
+<p class="helper">분석기가 놓치는 말버릇이나 표현을 추가하면, 브라우저에 저장돼 다음 분석부터 반영돼요.</p>
+<div class="teach-row"><input type="text" id="teachWord" maxlength="20" placeholder="예: 암튼, 알아서 하셈"><select id="teachCat"><optgroup label="조심해서 볼 표현"><option>서운함</option><option>불편함</option><option>분노</option><option>거리두기</option><option>거절</option><option>피곤·지침</option></optgroup><optgroup label="부드러운 표현"><option>친근함</option><option>애정·호감</option><option>배려·화해</option></optgroup></select><button type="button" class="btn soft" id="teachAdd">추가</button></div>
+<div class="teach-list" id="teachList"></div></details>
+
+<label class="checkrow main"><input type="checkbox" id="consent" checked><span>개인정보 자동 마스킹 및 안내 사항을 확인했습니다.</span></label>
+<div class="actions"><button type="button" class="btn primary" id="analyze">대화 단서 분석하기</button></div>
+</section>
+<section class="card result-card" id="result" aria-live="polite" aria-atomic="false">
+<div class="empty"><div><div class="empty-icon">✦</div><strong>분석 결과가 여기에 표시돼요</strong><p>관계와 상황, 대화 내용을 입력하거나<br>캡처·파일을 불러온 뒤 분석하기를 눌러 주세요.</p></div></div>
+</section>
+</div>
+<footer class="footer">본 도구의 위험도 수치 및 분위기 지표는 대화 패턴 분석 보조 도구이며 실제 관계나 감정을 단정하는 근거로 사용하지 마세요.</footer>
+</main>
+<div id="toast" class="toast hidden" role="status"></div>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const LIMIT = 12000;
+
+/* ===== 개인정보 자동 마스킹 (PII Security Redaction) ===== */
+function maskPII(text) {
+  if (!text) return '';
+  return text
+    .replace(/01[016789][-\s.]?\d{3,4}[-\s.]?\d{4}/g, '[전화번호]')
+    .replace(/\b\d{6}[-\s]?[1-4]\d{6}\b/g, '[주민번호]')
+    .replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, '[이메일]')
+    .replace(/(농협|신한|국민|우리|하나|기업|카카오|토스|kbank)\s*:?\s*\d+[-\d]+/gi, '[계좌번호]')
+    .replace(/\d{2,6}[-\s]\d{2,6}[-\s]\d{2,8}/g, '[계좌/번호]')
+    .replace(/https?:\/\/\S+/g, '[링크]');
+}
+
+/* ===== 표현 사전 ===== */
+const CATS = {
+ '서운함':{t:'neg',w:2.5},'불편함':{t:'neg',w:3},'분노':{t:'neg',w:4},'거리두기':{t:'neg',w:4},'거절':{t:'neg',w:1.8},'피곤·지침':{t:'neg',w:1},
+ '친근함':{t:'pos',w:1},'애정·호감':{t:'pos',w:1.5},'배려·화해':{t:'pos',w:1.5}
+};
+const BASE = {
+ '서운함':['서운','섭섭','실망','기대했는데','나만','맨날','항상 너는','또 그러','약속 안 지','안 알아주','신경 안 써','외롭','속상'],
+ '불편함':['불편','부담','그만해','그만 하','싫어','하지 마','그런 말 하지','불쾌','선 넘','선을 넘','ㅡㅡ',';;'],
+ '분노':['짜증','화나','열받','어이없','진짜 왜','뭐 하자는','말이 되','미치겠','빡치','답답'],
+ '거리두기':['됐어','됐고','마음대로 해','알아서 해','연락하지 마','그만 연락','신경 쓰지 마','냅둬','혼자 있고 싶','나중에 얘기','말 걸지'],
+ '거절':['미안한데','어려울 것 같','안 될 것 같','별로','굳이','다음에 보자','다음에 하자','생각해 볼게','좀 바빠','힘들 것 같','곤란'],
+ '피곤·지침':['피곤','지쳐','지친','힘들어','졸려','기운 없','번아웃'],
+ '친근함':['ㅋㅋ','ㅎㅎ','고마워','좋아','좋다','같이 가자','또 만나','재밌었','기대돼','최고','대박','굿'],
+ '애정·호감':['보고 싶','보고싶','사랑해','좋아해','귀여워','예쁘','설레','생각났'],
+ '배려·화해':['미안해','미안하다','이해해','걱정했어','도와줄게','고생했어','네 입장','얘기해 줘','수고했어','잘 지내']
+};
+const AMB = ['괜찮아','알겠어','그래','응','몰라','맘대로','아냐','별일 아','아무것도 아','상관없','ㅇㅋ','ㅇㅇ','넹','네네','흠'];
+const SCEN = [
+ {id:'late',icon:'⏰',name:'약속·지각',re:/늦|지각|약속|취소|미뤄|미룰|파투|도착/g,desc:'약속 또는 시간과 관련된 대화입니다.',tip:'변명보다는 현재 상황과 도착 예정 시간을 명확히 알리는 편이 좋습니다.'},
+ {id:'sorry',icon:'🙏',name:'사과·화해',re:/미안|죄송|잘못|사과|용서/g,desc:'사과나 갈등을 해결하려는 흐름입니다.',tip:'진정성 있는 사과는 솔직하고 짧게, 상대의 반응을 기다려주는 것이 중요합니다.'},
+ {id:'refuse',icon:'🚪',name:'거절·부담',re:/어려울 것|안 될 것|다음에|생각해 볼|힘들 것|곤란/g,desc:'상대방이 거절이나 부담을 나타내는 신호일 수 있습니다.',tip:'재촉하지 않고 상대의 선택을 존중한다는 의사를 밝히세요.'}
+];
+
+const ADV = {
+ '서운함':'상대방이 단정적으로 말하지 않더라도 마음속으로 아쉬움을 느끼고 있을 수 있어요. 비난조가 아닌 "어떤 점이 서운했는지 들어보고 싶어"라고 물어보세요.',
+ '거절':'상대의 완곡한 표현을 긍정으로 오해하지 않는 것이 중요합니다. 부담을 주지 않고 자유롭게 선택할 여지를 주는 편이 관계에 도움이 됩니다.',
+ '친근함':'좋은 분위기이지만, 지나친 확신보다는 차분하게 상대의 성향을 존중하며 대화를 이어나가세요.',
+ '갈등':'누가 옳은지 다투기보다 서로 불편함을 느낀 지점을 인정하는 대화 방식이 효과적입니다.',
+ '전체':'단순 문장 표현만으로 마음을 단정하지 말고, 가벼운 대화로 상대의 솔직한 느낌을 물어보세요.'
+};
+
+const REPLY = {
+ '서운함':{c:['혹시 내가 놓친 부분이 있어서 서운하게 했다면 솔직하게 말해 줄래? 너 말을 먼저 듣고 싶어.','마음에 걸려서 그래. 혹시 내가 한 말이나 행동 중에 많이 섭섭했던 게 있어?','얘기해 줘서 고마워. 내가 앞으로 어떻게 신경 쓰면 좋을까?'],p:['혹시 제가 서운하게 해 드린 부분이 있다면 말씀해 주세요. 먼저 어떤 마음이셨는지 차분히 듣고 싶습니다.','서운하셨다니 마음에 걸려요. 어떤 부분이 불편하셨는지 알려 주실 수 있을까요?','말씀해 주셔서 감사합니다. 다음엔 어떻게 조율하면 좋을까요?']},
+ '거절':{c:['알겠어! 부담 줄 생각은 전혀 없었으니까 편하게 생각해.','네 결정 존중할게! 다음에 시간 될 때 편하게 연락 줘.','괜찮아! 부담 갖지 마~'],p:['알겠습니다, 전혀 부담 갖지 않으셔도 괜찮습니다. 편하실 때 알려 주세요.','네, 말씀하신 상황 이해합니다. 나중에 기회가 되면 또 이야기 나눠요.','네, 편하게 생각해주세요!']},
+ '친근함':{c:['고마워! 나도 너랑 이야기해서 정말 즐거웠어.','그렇게 말해 주니까 기분 좋다! 요즘은 어떻게 지내?','나도 좋았어 ㅎㅎ 다음에 또 보자!'],p:['감사합니다, 저도 즐거운 시간이었습니다. 편하실 때 또 이야기 나눠요.','그렇게 말씀해 주시니 감사해요. 요즘은 어떻게 지내시나요?','저도 정말 좋았습니다!']},
+ '갈등':{c:['서로 생각한 부분이 조금 달랐던 것 같아. 내 뜻은 그게 아니었는데 상처가 됐다면 미안해. 차분히 얘기해 볼까?','누가 잘했냐를 따지기보다 서로 답답했던 부분에 대해 가볍게 나누고 싶어.','서로 감정이 격해질 수 있으니 조금 뒤에 차분히 이야기하자.'],p:['서로 다르게 받아들인 부분이 있었던 것 같습니다. 차분히 이야기 나누며 풀고 싶어요.','누가 맞는지보다 서로 어떤 점이 불편했는지 다듬어 가고 싶습니다.','잠시 숨 고르고, 조금 뒤에 차분히 말씀 나누시죠.']},
+ '전체':{c:['내가 혹시 오해한 게 있나 싶어서 물어봐. 불편한 점 있었어?','요즘 무슨 일 있어? 편하게 말해도 돼.','괜찮은 거지? 혹시 마음에 걸리는 게 있다면 편하게 말해 줘.'],p:['제가 혹시 놓친 점이 있는지 여쭤봅니다. 불편하셨던 부분이 있으신가요?','요즘 많이 바쁘신지 걱정이 되어 연락드렸어요. 편하실 때 말씀해 주세요.','괜찮으신가요? 편하게 말씀해주세요.']}
+};
+
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.add('hidden'),2800);}
+function updateCount(){$('charCount').textContent=$('chat').value.length.toLocaleString('ko-KR')+' / 12,000';}
+function hash(s){let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return Math.abs(h);}
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+
+async function copyText(text,message){
+ try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);}else{const a=document.createElement('textarea');a.value=text;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();}toast(message);}
+ catch(e){toast('복사하지 못했습니다. 직접 선택해 복사해 주세요.');}
+}
+
+function setChat(text){$('chat').value=maskPII(text.slice(-LIMIT));updateCount();refreshSpeakers();}
+
+/* ===== 대화 파싱 ===== */
+function parseChat(raw){
+ const pats=[
+  /^\[([^\]]{1,20})\]\s*\[[^\]]{1,15}\]\s*(.*)$/,
+  /^\d{4}\.\s*\d{1,2}\.\s*\d{1,2}\.?\s*(?:오전|오후)?\s*\d{1,2}:\d{2},\s*([^:：]{1,20}?)\s*[:：]\s*(.*)$/,
+  /^([^\s:：\[\]]{1,12})\s*[:：]\s*(.*)$/
+ ];
+ const cand=[];
+ for(const ln of raw.replace(/\r/g,'').split('\n')){
+  const s=ln.trim(); if(!s) continue;
+  if(/^[-—=\s]*\d{4}년\s*\d{1,2}월\s*\d{1,2}일/.test(s)||/^-{3,}/.test(s)) continue;
+  let m=null,k=-1;
+  for(let i=0;i<pats.length;i++){m=s.match(pats[i]);if(m){k=i;break;}}
+  cand.push(m?{k,sp:m[1].trim(),t:m[2].trim()}:{k:-1,sp:null,t:s});
+ }
+ const msgs=[];
+ for(const c of cand){
+   msgs.push({sp:c.sp,t:c.t});
+ }
+ return msgs;
+}
+
+function speakerInfo(msgs){
+ const speakers=[...new Set(msgs.map(m=>m.sp).filter(Boolean))];
+ return {speakers,hasMe:speakers.some(s=>['나','내','me','Me'].includes(s))};
+}
+
+function refreshSpeakers(){
+  const {speakers,hasMe}=speakerInfo(parseChat($('chat').value));
+  const sel=$('meSpeaker');
+  if(speakers.length>=2&&!hasMe){
+   sel.innerHTML='<option value="">선택 안 함</option>'+speakers.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+   $('meWrap').classList.remove('hidden');
+  }else{$('meWrap').classList.add('hidden');}
+}
+
+/* ===== 분석 메인 ===== */
+let lastReplies=[];
+function analyze(){
+ const target=$('target').value, focus=$('focus').value, situation=$('situation').value.trim();
+ let chat=$('chat').value.trim();
+
+ // 마스킹 적용
+ chat = maskPII(chat);
+ $('chat').value = chat;
+
+ if(chat.replace(/\s/g,'').length<6){toast('대화 내용을 더 입력해 주세요.');$('chat').focus();return;}
+ 
+ const msgs=parseChat(chat);
+ let negCount=0, posCount=0;
+ 
+ msgs.forEach(m => {
+   for(const cat in BASE){
+     BASE[cat].forEach(w => {
+       if(m.t.includes(w)){
+         if(CATS[cat].t === 'neg') negCount += CATS[cat].w;
+         else posCount += CATS[cat].w;
+       }
+     });
+   }
+ });
+
+ let riskScore = Math.min(100, Math.round(negCount * 14 + (msgs.length < 4 ? 15 : 0)));
+ let riskLevel = '안정 🟢', riskClass = 'lvl-1';
+ if(riskScore >= 70) { riskLevel = '위험 🚨'; riskClass = 'lvl-4'; }
+ else if(riskScore >= 45) { riskLevel = '경보 🔴'; riskClass = 'lvl-3'; }
+ else if(riskScore >= 25) { riskLevel = '주의 🟧'; riskClass = 'lvl-2'; }
+
+ const polite = (target === '어머니');
+ const replySet = (focus === '전체' || !REPLY[focus]) ? REPLY['전체'] : REPLY[focus];
+ lastReplies = (polite ? replySet.p : replySet.c).map((t, i) => ({
+   label: ['부드럽게 대화하기', '담백하고 명확하게', '부담을 낮추는 단문'][i],
+   text: t
+ }));
+
+ renderResult({
+   target, focus, situation, riskScore, riskLevel, riskClass, msgs, polite
+ });
+}
+
+function renderResult(d) {
+ const repHtml = lastReplies.map((r,i)=>`
+   <div class="reply-item">
+     <div class="reply-label">${escapeHtml(r.label)}</div>
+     <div class="reply">${escapeHtml(r.text)}</div>
+     <div class="reply-actions"><button type="button" class="btn soft" data-copy="${i}">복사하기</button></div>
+   </div>
+ `).join('');
+
+ $('result').innerHTML = `
+ <div class="result-top"><h2>대화 분석 및 대처 리포트</h2><span class="pill">보안 마스킹 완료</span></div>
+ <p class="result-context"><b>대상:</b> ${escapeHtml(d.target)} | <b>중점:</b> ${escapeHtml(d.focus)}<br><b>상황:</b> ${d.situation ? escapeHtml(d.situation) : '선택된 상황 없음'}</p>
+
+ <div class="section">
+   <div class="risk-box">
+     <div class="risk-header">
+       <span class="risk-title">⚠️ 대화 갈등/위험도 레이더</span>
+       <span class="risk-badge ${d.riskClass}">${d.riskLevel}</span>
+     </div>
+     <div class="risk-num">${d.riskScore}<span style="font-size:16px;font-weight:600"> / 100</span></div>
+     <div class="meter"><span style="width:${d.riskScore}%"></span></div>
+     <div class="risk-desc">대화 속 단서 및 답장 빈도 기반 추정 위험도입니다. 상대방이 서운함이나 오해를 느끼고 있을 가능성을 점검해보세요.</div>
+   </div>
+ </div>
+
+ <div class="section">
+   <h3>💡 추천 대응 방향 및 맞춤 가이드</h3>
+   <p>${escapeHtml(ADV[d.focus] || ADV['전체'])}</p>
+ </div>
+
+ <div class="section">
+   <h3>💬 상황별 추천 답장 선택지</h3>
+   ${repHtml}
+ </div>
+
+ <div class="actions" style="margin-top:20px">
+   <button type="button" class="btn primary" data-act="all">결과 전체 복사</button>
+ </div>
+ `;
+}
+
+/* ===== 태그 클릭 및 이벤트 ===== */
+document.querySelectorAll('.tag-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    $('situation').value = btn.dataset.tag;
+  });
+});
+
+$('analyze').addEventListener('click', analyze);$('chat').addEventListener('input', () => {
+  $('chat').value = maskPII($('chat').value);
+  updateCount();
+  refreshSpeakers();
+});
+
+$('sample').addEventListener('click', () => {$('target').value = '여자친구';
+  $('focus').value = '서운함';
+  $('situation').value = '약속 시간 지각 후 나눈 대화야.';
+  setChat('나: 미안, 오늘 조금 늦을 것 같아.\n상대: 그래 알겠어.\n나: 혹시 화났어?\n상대: 아니, 그냥 좀 서운하긴 해. 다음에는 미리 말해 줘.');
+  toast('예시 데이터가 로드되었습니다.');
+});
+
+$('clear').addEventListener('click', () => {
+  $('situation').value = '';$('chat').value = '';
+  updateCount();
+  toast('입력 내용이 초기화되었습니다.');
+});
+
+$('result').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if(!b) return;
+  if(b.dataset.copy !== undefined) {
+    copyText(lastReplies[Number(b.dataset.copy)].text, '답장이 복사되었습니다.');
+  } else if(b.dataset.act === 'all') {
+    copyText($('result').innerText, '전체 결과가 복사되었습니다.');
+  }
+});
+
+updateCount();
+</script>
+</body>
+</html>
